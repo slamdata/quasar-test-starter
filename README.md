@@ -8,15 +8,8 @@ Can be used as a library in other projects via the modules in `Quasar.Spawn`, or
 
 Running `npm install` first will set up the project so the following scripts are in a runnable state:
 
-```
-npm run start-clean
-```
-This will start Quasar and MongoDB with a default config and the datasets in the `data` directory.
-
-```
-npm run start
-```
-This will start Quasar and MongoDB without resetting the database and config. This will fail unless `start-clean` has been run at least once, as required directories will not exist on the first run of `start`.
+- `npm run start-clean` will start Quasar and MongoDB with a default config and the datasets in the `data` directory.
+- `npm run start` will start Quasar and MongoDB without resetting the database and config. This will fail unless `start-clean` has been run at least once, as required directories will not exist on the first run of `start`.
 
 ## Hosting the SlamData front-end
 
