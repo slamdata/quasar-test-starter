@@ -1,0 +1,10 @@
+/.*
+!/.gitignore
+!/.travis.yml
+/bower_components/
+/node_modules/
+/output/
+/quasar/quasar.jar
+/quasar/spawn.js
+/tmp/
+/slamdata/
