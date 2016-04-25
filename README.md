@@ -2,7 +2,7 @@
 
 A project that makes it easy to start MongoDB and Quasar while testing SlamData or the Quasar API.
 
-Can be used as a library for other projects to make use of, via modules in `Quasar.Spawn`, or on the command line:
+Can be used as a library in other projects via the modules in `Quasar.Spawn`, or on the command line:
 
 ```
 npm run start-clean
