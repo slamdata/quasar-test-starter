@@ -30,7 +30,7 @@ import Data.String as Str
 import Node.Buffer (BUFFER)
 import Node.ChildProcess as CP
 
-import Quasar.Spawn.Util.Starter (starter)
+import Quasar.Spawn.Util.Starter (starter, expectStdOut)
 
 type CWD = String
 type JarPath = String
@@ -43,11 +43,12 @@ spawnMongo
   → Port
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
 spawnMongo cwd port = do
-  starter "MongoDB" "[initandlisten] waiting for connections" $ liftEff $
-    CP.spawn
-      "mongod"
-      ["--port", show port, "--dbpath", "db"]
-      (CP.defaultSpawnOptions { cwd = Just cwd })
+  starter "MongoDB" (expectStdOut "[initandlisten] waiting for connections") $
+    liftEff $
+      CP.spawn
+        "mongod"
+        ["--port", show port, "--dbpath", "db"]
+        (CP.defaultSpawnOptions { cwd = Just cwd })
 
 spawnQuasar
   ∷ ∀ eff
@@ -56,8 +57,9 @@ spawnQuasar
   → Options
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, buffer ∷ BUFFER, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
 spawnQuasar cwd jar opts = do
-  starter "Quasar" "Press Enter to stop" $ liftEff $
-    CP.spawn
-      "java"
-      (["-jar", jar, "-c", cwd <> "/config.json"] <> Str.split " " opts)
-      CP.defaultSpawnOptions
+  starter "Quasar" (expectStdOut "Press Enter to stop") $
+    liftEff $
+      CP.spawn
+        "java"
+        (["-jar", jar, "-c", cwd <> "/config.json"] <> Str.split " " opts)
+        CP.defaultSpawnOptions

@@ -14,20 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -}
 
-module Quasar.Spawn.Util.Starter where
+module Quasar.Spawn.Util.Starter
+  ( starter
+  , expectStdOut
+  , expectStdErr
+  ) where
 
 import Prelude
 
 import Control.Monad.Aff (Aff, launchAff, later', forkAff)
-import Control.Monad.Aff.AVar (AVAR, makeVar, takeVar, putVar)
+import Control.Monad.Aff.AVar (AVar, AVAR, makeVar, takeVar, putVar)
 import Control.Monad.Aff.Console (log)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (EXCEPTION, error)
+import Control.Monad.Eff.Exception (EXCEPTION, Error, error)
 import Control.Monad.Error.Class (throwError)
 
+import Data.Either (Either(..))
 import Data.Functor (($>))
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..))
 import Data.Posix.Signal (Signal(SIGTERM))
 import Data.String as Str
 
@@ -50,24 +56,47 @@ import Node.Stream as Stream
 starter
   ∷ ∀ eff
   . String
-  → String
+  → (Either String String → Maybe (Either String Unit))
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
-starter name startLine spawnProc = do
+starter name check spawnProc = do
   log $ "Starting " ++ name ++ "..."
   var ← makeVar
   proc ← spawnProc
-  liftEff $ Stream.onDataString (CP.stderr proc) Enc.UTF8 \s →
-    launchAff $ putVar var $ Just $ error $ "An error occurred: " ++ s
-  liftEff $ Stream.onDataString (CP.stdout proc) Enc.UTF8 \s →
-    launchAff
-      if isJust (Str.indexOf startLine s)
-      then putVar var Nothing
-      else pure unit
-  forkAff $ later' 10000 $ putVar var $ Just (error "Timed out")
+  liftEff do
+    Stream.onDataString (CP.stderr proc) Enc.UTF8 (checker var check <<< Left)
+    Stream.onDataString (CP.stdout proc) Enc.UTF8 (checker var check <<< Right)
+  forkAff $ later' 15000 $ putVar var $ Just (error "Timed out")
   v ← takeVar var
   case v of
     Nothing → log "Started" $> proc
     Just err → do
       liftEff $ CP.kill SIGTERM proc
       throwError err
+
+expectStdOut ∷ String → Either String String → Maybe (Either String Unit)
+expectStdOut _ (Left err) = Just (Left err)
+expectStdOut expected (Right msg)
+  | Str.contains expected msg = Just (Right unit)
+  | otherwise = Nothing
+
+expectStdErr ∷ String → Either String String → Maybe (Either String Unit)
+expectStdErr expected (Left msg)
+  | Str.contains expected msg = Just (Right unit)
+  | otherwise = Nothing
+expectStdErr _ _ = Nothing
+
+checker
+  ∷ ∀ eff
+  . AVar (Maybe Error)
+  → (Either String String → Maybe (Either String Unit))
+  → Either String String
+  → Eff (avar ∷ AVAR, err ∷ EXCEPTION | eff) Unit
+checker var check msg =
+  case check msg of
+    Just (Left err) →
+      launchAff $ putVar var $ Just $ error $ "An error occurred: " <> err
+    Just (Right _) →
+      launchAff $ putVar var Nothing
+    Nothing →
+      pure unit

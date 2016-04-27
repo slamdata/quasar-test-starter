@@ -4,6 +4,7 @@
     "postinstall": "bower i && npm run -s build && node quasar/get-quasar.js",
     "clean": "rimraf output && rimraf .pulp-cache && rimraf tmp && rimraf quasar/spawn.js",
     "build": "pulp build -m Main -I bin --to quasar/spawn.js",
+    "psa": "pulp build -m Main -I bin --censor-lib --strict --stash",
     "start": "node quasar/spawn",
     "start-clean": "node quasar/spawn --reset"
   },
