@@ -18,8 +18,6 @@ module Quasar.Spawn.Util.FS where
 
 import Prelude
 
-import Control.Bind ((=<<))
-import Control.Monad (unless)
 import Control.Monad.Aff (Aff, attempt, apathize)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Error.Class (throwError)

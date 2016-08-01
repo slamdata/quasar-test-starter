@@ -60,7 +60,7 @@ starter
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
 starter name check spawnProc = do
-  log $ "Starting " ++ name ++ "..."
+  log $ "Starting " <> name <> "..."
   var ← makeVar
   proc ← spawnProc
   liftEff do
@@ -95,8 +95,8 @@ checker
 checker var check msg =
   case check msg of
     Just (Left err) →
-      launchAff $ putVar var $ Just $ error $ "An error occurred: " <> err
+      void $ launchAff $ putVar var $ Just $ error $ "An error occurred: " <> err
     Just (Right _) →
-      launchAff $ putVar var Nothing
+      void $ launchAff $ putVar var Nothing
     Nothing →
       pure unit

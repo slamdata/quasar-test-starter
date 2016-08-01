@@ -18,8 +18,8 @@ module Main where
 
 import Prelude
 
-import Control.Monad (when)
 import Control.Monad.Aff (launchAff)
+import Control.Monad.Aff.Unsafe (unsafeInterleaveAff)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff (Eff)
@@ -46,7 +46,7 @@ main = Y.runY mempty $
   app <$> Y.flag "reset" [] (Just "Reset the config and test database")
 
 app ∷ Boolean → Eff Effects Unit
-app reset = launchAff do
+app reset = void $ launchAff $ unsafeInterleaveAff do
 
   when reset do
     log "Resetting config and test database"
