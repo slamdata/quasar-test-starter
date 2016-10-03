@@ -74,12 +74,14 @@ starter name check spawnProc = do
       liftEff $ CP.kill SIGTERM proc
       throwError err
 
+-- When we expect something from stdout we allow anything in stderr
 expectStdOut ∷ String → Either String String → Maybe (Either String Unit)
-expectStdOut _ (Left err) = Just (Left err)
 expectStdOut expected (Right msg)
   | Str.contains expected msg = Just (Right unit)
   | otherwise = Nothing
+expectStdOut _ _ = Nothing
 
+-- And when we expect something from stderr we allow anything in stdout
 expectStdErr ∷ String → Either String String → Maybe (Either String Unit)
 expectStdErr expected (Left msg)
   | Str.contains expected msg = Just (Right unit)
