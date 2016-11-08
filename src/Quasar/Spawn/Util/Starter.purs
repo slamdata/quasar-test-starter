@@ -32,7 +32,6 @@ import Control.Monad.Eff.Exception (EXCEPTION, Error, error)
 import Control.Monad.Error.Class (throwError)
 
 import Data.Either (Either(..))
-import Data.Functor (($>))
 import Data.Maybe (Maybe(..))
 import Data.Posix.Signal (Signal(SIGTERM))
 import Data.String as Str
@@ -77,14 +76,14 @@ starter name check spawnProc = do
 -- When we expect something from stdout we allow anything in stderr
 expectStdOut ∷ String → Either String String → Maybe (Either String Unit)
 expectStdOut expected (Right msg)
-  | Str.contains expected msg = Just (Right unit)
+  | Str.contains (Str.Pattern expected) msg = Just (Right unit)
   | otherwise = Nothing
 expectStdOut _ _ = Nothing
 
 -- And when we expect something from stderr we allow anything in stdout
 expectStdErr ∷ String → Either String String → Maybe (Either String Unit)
 expectStdErr expected (Left msg)
-  | Str.contains expected msg = Just (Right unit)
+  | Str.contains (Str.Pattern expected) msg = Just (Right unit)
   | otherwise = Nothing
 expectStdErr _ _ = Nothing
 
