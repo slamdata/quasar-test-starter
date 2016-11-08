@@ -61,5 +61,5 @@ spawnQuasar cwd jar opts = do
     liftEff $
       CP.spawn
         "java"
-        (["-jar", jar, "-c", cwd <> "/config.json", "-L", "/slamdata"] <> Str.split " " opts)
+        (["-jar", jar, "-c", cwd <> "/config.json", "-L", "/slamdata"] <> Str.split (Str.Pattern " ") opts)
         CP.defaultSpawnOptions
