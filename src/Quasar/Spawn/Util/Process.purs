@@ -43,7 +43,7 @@ spawnMongo
   → Port
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
 spawnMongo cwd port = do
-  starter "MongoDB" (expectStdOut "[initandlisten] waiting for connections") $
+  starter "MongoDB" (expectStdOut "waiting for connections") $
     liftEff $
       CP.spawn
         "mongod"
