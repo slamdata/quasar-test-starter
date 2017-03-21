@@ -65,7 +65,7 @@ starter name check spawnProc = do
   liftEff do
     Stream.onDataString (CP.stderr proc) Enc.UTF8 (checker var check <<< Left)
     Stream.onDataString (CP.stdout proc) Enc.UTF8 (checker var check <<< Right)
-  forkAff $ later' 15000 $ putVar var $ Just (error "Timed out")
+  forkAff $ later' 30000 $ putVar var $ Just (error "Timed out")
   v ← takeVar var
   case v of
     Nothing → log "Started" $> proc
