@@ -39,7 +39,7 @@ import Quasar.Spawn.Util.FS as FS
 import Quasar.Spawn.Util.Process (spawnMongo, spawnQuasar)
 import Quasar.Spawn.Util.TestData as TD
 
-type Effects = (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, fs ∷ FS, buffer ∷ BUFFER, console ∷ CONSOLE, err ∷ EXCEPTION)
+type Effects = (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, fs ∷ FS, buffer ∷ BUFFER, console ∷ CONSOLE, exception ∷ EXCEPTION)
 
 main ∷ Eff Effects Unit
 main = Y.runY mempty $
@@ -56,5 +56,5 @@ app reset = void $ launchAff $ unsafeCoerceAff do
     TD.importTestData 63174 "data"
     FSA.readFile "quasar/config.json" >>= FSA.writeFile "tmp/quasar/config.json"
 
-  spawnMongo "tmp" 63174
-  spawnQuasar "tmp/quasar" "quasar/quasar.jar" "-C slamdata"
+  void $ spawnMongo "tmp" 63174
+  void $ spawnQuasar "tmp/quasar" "quasar/quasar.jar" "-C slamdata"
