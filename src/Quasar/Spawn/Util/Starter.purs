@@ -21,8 +21,7 @@ module Quasar.Spawn.Util.Starter
   ) where
 
 import Prelude
-
-import Control.Monad.Aff (Aff, launchAff, later', forkAff)
+import Control.Monad.Aff (Aff, launchAff, delay, forkAff)
 import Control.Monad.Aff.AVar (AVar, AVAR, makeVar, takeVar, putVar)
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff (Eff)
@@ -30,12 +29,11 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION, Error, error)
 import Control.Monad.Error.Class (throwError)
-
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Posix.Signal (Signal(SIGTERM))
 import Data.String as Str
-
+import Data.Time.Duration (Milliseconds(..))
 import Node.ChildProcess as CP
 import Node.Encoding as Enc
 import Node.Stream as Stream
@@ -56,8 +54,8 @@ starter
   ∷ ∀ eff
   . String
   → (Either String String → Maybe (Either String Unit))
-  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
-  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
+  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) CP.ChildProcess
+  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) CP.ChildProcess
 starter name check spawnProc = do
   log $ "Starting " <> name <> "..."
   var ← makeVar
@@ -65,12 +63,14 @@ starter name check spawnProc = do
   liftEff do
     Stream.onDataString (CP.stderr proc) Enc.UTF8 (checker var check <<< Left)
     Stream.onDataString (CP.stdout proc) Enc.UTF8 (checker var check <<< Right)
-  forkAff $ later' 30000 $ putVar var $ Just (error "Timed out")
+  _ ← forkAff do
+    delay (Milliseconds 30000.0)
+    putVar var $ Just (error "Timed out")
   v ← takeVar var
   case v of
     Nothing → log "Started" $> proc
     Just err → do
-      liftEff $ CP.kill SIGTERM proc
+      _ ← liftEff $ CP.kill SIGTERM proc
       throwError err
 
 -- When we expect something from stdout we allow anything in stderr
@@ -92,7 +92,7 @@ checker
   . AVar (Maybe Error)
   → (Either String String → Maybe (Either String Unit))
   → Either String String
-  → Eff (avar ∷ AVAR, err ∷ EXCEPTION | eff) Unit
+  → Eff (avar ∷ AVAR, exception ∷ EXCEPTION | eff) Unit
 checker var check msg =
   case check msg of
     Just (Left err) →

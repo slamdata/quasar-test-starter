@@ -17,9 +17,9 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-node-process": "^3.0.0",
-    "purescript-node-child-process": "^3.0.0",
-    "purescript-node-fs-aff": "^3.0.0",
-    "purescript-yargs": "^2.0.0"
+    "purescript-node-process": "^4.0.0",
+    "purescript-node-child-process": "^4.0.0",
+    "purescript-node-fs-aff": "^4.0.0",
+    "purescript-yargs": "^3.0.0"
   }
 }

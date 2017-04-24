@@ -41,7 +41,7 @@ spawnMongo
   ∷ ∀ eff
   . CWD
   → Port
-  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
+  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) CP.ChildProcess
 spawnMongo cwd port = do
   starter "MongoDB" (expectStdOut "waiting for connections") $
     liftEff $
@@ -55,7 +55,7 @@ spawnQuasar
   . CWD
   → JarPath
   → Options
-  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, buffer ∷ BUFFER, console ∷ CONSOLE, err ∷ EXCEPTION | eff) CP.ChildProcess
+  → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, buffer ∷ BUFFER, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) CP.ChildProcess
 spawnQuasar cwd jar opts = do
   starter "Quasar" (expectStdOut "Press Enter to stop") $
     liftEff $
