@@ -36,14 +36,14 @@ import Node.FS.Aff as FSA
 import Node.Yargs.Applicative as Y
 
 import Quasar.Spawn.Util.FS as FS
-import Quasar.Spawn.Util.Process (spawnMongo, spawnQuasar)
+import Quasar.Spawn.Util.Process (spawnMongo, spawnQuasar, spawnQuasarInit)
 import Quasar.Spawn.Util.TestData as TD
 
 type Effects = (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, fs ∷ FS, buffer ∷ BUFFER, console ∷ CONSOLE, exception ∷ EXCEPTION)
 
 main ∷ Eff Effects Unit
 main = Y.runY mempty $
-  app <$> Y.flag "reset" [] (Just "Reset the config and test database")
+  app <$> Y.flag "reset" [] (Just "Reset the config and test database, run initUpdateMetaStore")
 
 app ∷ Boolean → Eff Effects Unit
 app reset = void $ launchAff $ unsafeCoerceAff do
@@ -55,6 +55,7 @@ app reset = void $ launchAff $ unsafeCoerceAff do
     FS.mkdirRec "tmp/quasar"
     TD.importTestData 63174 "data"
     FSA.readFile "quasar/config.json" >>= FSA.writeFile "tmp/quasar/config.json"
+    void $ spawnQuasarInit "tmp/quasar/config.json" "quasar/quasar.jar"
 
   void $ spawnMongo "tmp" 63174
-  void $ spawnQuasar "tmp/quasar" "quasar/quasar.jar" "-C slamdata"
+  void $ spawnQuasar "tmp/quasar/config.json" "quasar/quasar.jar" "-C slamdata"
