@@ -53,9 +53,11 @@ app reset = void $ launchAff $ unsafeCoerceAff do
     FS.rmRec "tmp"
     FS.mkdirRec "tmp/db"
     FS.mkdirRec "tmp/quasar"
+    void $ spawnMongo "tmp" 63174
     TD.importTestData 63174 "data"
     FSA.readFile "quasar/config.json" >>= FSA.writeFile "tmp/quasar/config.json"
     void $ spawnQuasarInit "tmp/quasar/config.json" "quasar/quasar.jar"
 
-  void $ spawnMongo "tmp" 63174
+  when (not reset) do
+    void $ spawnMongo "tmp" 63174
   void $ spawnQuasar "tmp/quasar/config.json" "quasar/quasar.jar" "-C slamdata"
