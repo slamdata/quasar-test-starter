@@ -38,4 +38,4 @@ or on Windows Powershell:
 mklink /path/to/quasar-test-starter/slamdata/ /path/to/slamdata/public/
 ```
 
-Notice that you will simlink `public/` from slamdata and rename it to `slamdata/` inside `quasar-test-starter/`.
+Notice that you will symlink `public/` from slamdata and rename it to `slamdata/` inside `quasar-test-starter/`.
