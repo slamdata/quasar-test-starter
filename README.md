@@ -29,9 +29,13 @@ Once these setup steps have been completed, the following commands can be used w
 
 When run as an executable, the content path `slamdata` is passed through as an option to Quasar, so making a symlink in the directory of this project to the `public/` folder in a SlamData project will enable testing of the front-end, hosted by the Quasar instance.
 
-The following command can be run to simlink the folder:
+The following terminal command can be run to symlink the folder:
 ```
 ln -s /path/to/slamdata/public/ /path/to/quasar-test-starter/slamdata/
+```
+or on Windows Powershell:
+```
+mklink /path/to/quasar-test-starter/slamdata/ /path/to/slamdata/public/
 ```
 
 Notice that you will simlink `public/` from slamdata and rename it to `slamdata/` inside `quasar-test-starter/`.
