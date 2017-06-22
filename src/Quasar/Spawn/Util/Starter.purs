@@ -21,22 +21,24 @@ module Quasar.Spawn.Util.Starter
   ) where
 
 import Prelude
+
 import Control.Monad.Aff (Aff, launchAff, delay, forkAff)
-import Control.Monad.Aff.AVar (AVar, AVAR, makeVar, takeVar, putVar)
-import Control.Monad.Aff.Console (log)
+import Control.Monad.Aff.AVar (AVar, AVAR, makeVar, takeVar, putVar, tryPeekVar)
+import Control.Monad.Aff.Console (CONSOLE, log)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (EXCEPTION, Error, error)
+import Control.Monad.Eff.Exception (EXCEPTION, error)
 import Control.Monad.Error.Class (throwError)
-import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
+import Data.Either (Either(..), either)
+import Data.Foldable (for_)
+import Data.Maybe (Maybe(..), isNothing)
 import Data.Posix.Signal (Signal(SIGTERM))
 import Data.String as Str
 import Data.Time.Duration (Milliseconds(..))
 import Node.ChildProcess as CP
 import Node.Encoding as Enc
 import Node.Stream as Stream
+import Text.Chalky as Chalky
 
 -- | Wraps an `Aff` action that spawns a child process, adding a listener that
 -- | waits for a particular string to appear in the spawned process's stdout
@@ -57,7 +59,7 @@ starter
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) CP.ChildProcess
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) CP.ChildProcess
 starter name check spawnProc = do
-  log $ "Starting " <> name <> "..."
+  log $ Chalky.bold $ "Starting " <> name <> "..."
   var ← makeVar
   proc ← spawnProc
   liftEff do
@@ -65,13 +67,14 @@ starter name check spawnProc = do
     Stream.onDataString (CP.stdout proc) Enc.UTF8 (checker var check <<< Right)
   _ ← forkAff do
     delay (Milliseconds 30000.0)
-    putVar var $ Just (error "Timed out")
+    putVar var $ Just ("Timed out")
   v ← takeVar var
   case v of
-    Nothing → log "Started" $> proc
+    Nothing → log (Chalky.bold "Started") $> proc
     Just err → do
       _ ← liftEff $ CP.kill SIGTERM proc
-      throwError err
+      log (Chalky.red err)
+      throwError (error "Starting process failed")
 
 -- When we expect something from stdout we allow anything in stderr
 expectStdOut ∷ String → Either String String → Maybe (Either String Unit)
@@ -89,15 +92,14 @@ expectStdErr _ _ = Nothing
 
 checker
   ∷ ∀ eff
-  . AVar (Maybe Error)
+  . AVar (Maybe String)
   → (Either String String → Maybe (Either String Unit))
   → Either String String
-  → Eff (avar ∷ AVAR, exception ∷ EXCEPTION | eff) Unit
-checker var check msg =
-  case check msg of
-    Just (Left err) →
-      void $ launchAff $ putVar var $ Just $ error $ "An error occurred: " <> err
-    Just (Right _) →
-      void $ launchAff $ putVar var Nothing
-    Nothing →
-      pure unit
+  → Eff (console ∷ CONSOLE, avar ∷ AVAR, exception ∷ EXCEPTION | eff) Unit
+checker var check msg = void $ launchAff do
+  b ← isNothing <$> tryPeekVar var
+  when b do
+    log $ either Chalky.yellow Chalky.cyan msg
+    for_ (check msg) $
+      putVar var <<<
+        either (Just <<< ("An error occurred: " <> _)) (const Nothing)
