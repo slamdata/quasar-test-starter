@@ -48,8 +48,17 @@ main = Y.runY mempty $
 app ∷ Boolean → Eff Effects Unit
 app reset = void $ launchAff $ unsafeCoerceAff do
 
-  when reset do
-    log "Resetting config and test database"
+  dbExists ← FSA.exists "tmp/db"
+  quasarExists ← FSA.exists "tmp/quasar"
+
+  let uninitialised = not dbExists || not quasarExists
+
+  when reset $ log "Resetting config and test database"
+  when uninitialised $ log "Initializing config and test database"
+
+  let b = reset || uninitialised
+
+  when b do
     FS.rmRec "tmp"
     FS.mkdirRec "tmp/db"
     FS.mkdirRec "tmp/quasar"
@@ -58,6 +67,9 @@ app reset = void $ launchAff $ unsafeCoerceAff do
     FSA.readFile "quasar/config.json" >>= FSA.writeFile "tmp/quasar/config.json"
     void $ spawnQuasarInit "tmp/quasar/config.json" "quasar/quasar.jar"
 
-  when (not reset) do
+  when (not b) do
+    FS.mkdirRec "tmp/db"
+    FS.mkdirRec "tmp/quasar"
     void $ spawnMongo "tmp" 63174
+
   void $ spawnQuasar "tmp/quasar/config.json" "quasar/quasar.jar" "-C slamdata"
