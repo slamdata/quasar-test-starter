@@ -5,8 +5,8 @@
     "clean": "rimraf output && rimraf .pulp-cache && rimraf tmp && rimraf quasar/spawn.js",
     "build": "pulp build -m Main -I bin --to quasar/spawn.js",
     "psa": "pulp build -m Main -I bin --censor-lib --strict --stash",
-    "start": "node quasar/spawn",
-    "start-clean": "node quasar/spawn --reset"
+    "start": "node quasar/get-quasar && node quasar/spawn",
+    "start-clean": "node quasar/get-quasar && node quasar/spawn --reset"
   },
   "devDependencies": {
     "pulp": "^11.0.0",
