@@ -23,7 +23,7 @@ module Quasar.Spawn.Util.Starter
 import Prelude
 
 import Control.Monad.Aff (Aff, launchAff, delay, forkAff)
-import Control.Monad.Aff.AVar (AVar, AVAR, makeVar, takeVar, putVar, tryPeekVar)
+import Control.Monad.Aff.AVar (AVar, AVAR, makeVar, peekVar, putVar, tryPeekVar)
 import Control.Monad.Aff.Console (CONSOLE, log)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
@@ -68,7 +68,7 @@ starter name check spawnProc = do
   _ ← forkAff do
     delay (Milliseconds 30000.0)
     putVar var $ Just ("Timed out")
-  v ← takeVar var
+  v ← peekVar var
   case v of
     Nothing → log (Chalky.bold "Started") $> proc
     Just err → do
