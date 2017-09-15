@@ -62,7 +62,7 @@ spawnQuasarInit config jar = do
   _ ← liftEff do
     cp ← CP.spawn
       "java"
-      (["-jar", jar, "initUpdateMetaStore", "-c", config])
+      (quasarMemOptions <> ["-jar", jar, "initUpdateMetaStore", "-c", config])
       CP.defaultSpawnOptions
     CP.onExit cp case _ of
       CP.Normally _ →
@@ -82,5 +82,8 @@ spawnQuasar config jar opts =
     liftEff $
       CP.spawn
         "java"
-        (["-jar", jar, "-c", config, "-L", "/slamdata"] <> Str.split (Str.Pattern " ") opts)
+        (quasarMemOptions <> ["-jar", jar, "-c", config, "-L", "/slamdata"] <> Str.split (Str.Pattern " ") opts)
         CP.defaultSpawnOptions
+
+quasarMemOptions ∷ Array String
+quasarMemOptions = ["-Xms1g", "-Xmx2g", "-server"]
