@@ -5,6 +5,8 @@
 /node_modules/
 /output/
 /quasar/quasar.jar
+/quasar/cache/
+/quasar/plugins/
 /quasar/spawn.js
 /tmp/
 /slamdata/
