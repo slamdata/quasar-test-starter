@@ -2,6 +2,13 @@
   "server": {
     "port": 8080
   },
+  "metastore": {
+    "database": {
+      "h2": {
+        "file": "./tmp/quasar/metastore.db"
+      }
+    }
+  },
   "mountings": {
     "/": {
       "mongodb": {

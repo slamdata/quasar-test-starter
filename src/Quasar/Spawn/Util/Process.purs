@@ -82,7 +82,7 @@ spawnQuasar config jar opts =
     liftEff $
       CP.spawn
         "java"
-        (quasarMemOptions <> ["-jar", jar, "-c", config, "-L", "/slamdata"] <> Str.split (Str.Pattern " ") opts)
+        (quasarMemOptions <> ["-jar", jar, "-c", config, "-P", "quasar/plugins/", "-L", "/slamdata"] <> Str.split (Str.Pattern " ") opts)
         CP.defaultSpawnOptions
 
 quasarMemOptions ∷ Array String
