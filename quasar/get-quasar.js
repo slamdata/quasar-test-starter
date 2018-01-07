@@ -3,7 +3,7 @@ var fs = require("fs");
 var cp = require("child_process");
 var rimraf = require("rimraf");
 var path = require("path");
-var config = require("./versions.json");
+var config = JSON.parse(fs.readFileSync("./quasar/versions.json"));
 
 const checkQuasarVersion = (config) =>
   new Promise((resolve, reject) => {
