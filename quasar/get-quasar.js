@@ -4,6 +4,7 @@ var cp = require("child_process");
 var rimraf = require("rimraf");
 var path = require("path");
 var config = JSON.parse(fs.readFileSync("./quasar/versions.json"));
+var readline = require("readline");
 
 const checkQuasarVersion = (config) =>
   new Promise((resolve, reject) => {
@@ -151,15 +152,15 @@ const fetchAsset = (options, asset, token) =>
           const now = Date.now();
           if (now - lastUpdate > 500) {
             const percent = Math.round(downloaded / contentLength * 10000) / 100;
-            process.stdout.clearLine();
-            process.stdout.cursorTo(0);
+            readline.clearLine(process.stdout);
+            readline.cursorTo(process.stdout, 0);
             process.stdout.write("Downloading " + asset.name + "... " + percent + "%");
             lastUpdate = now;
           }
         });
         assetResponse.on("end", (chunk) => {
-          process.stdout.clearLine();
-          process.stdout.cursorTo(0);
+          readline.clearLine(process.stdout);
+          readline.cursorTo(process.stdout, 0);
           console.log ("Downloaded " + asset.name);
         });
         const destFile = fs.createWriteStream(tempFile);
