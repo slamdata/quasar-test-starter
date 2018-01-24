@@ -23,7 +23,7 @@ module Quasar.Spawn.Util.Starter
 import Prelude
 
 import Control.Monad.Aff (Aff, launchAff, delay, forkAff)
-import Control.Monad.Aff.AVar (AVar, AVAR, makeVar, peekVar, putVar, tryPeekVar)
+import Control.Monad.Aff.AVar (AVar, AVAR, makeEmptyVar, readVar, putVar, tryReadVar)
 import Control.Monad.Aff.Console (CONSOLE, log)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
@@ -60,15 +60,15 @@ starter
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) CP.ChildProcess
 starter name check spawnProc = do
   log $ Chalky.bold $ "Starting " <> name <> "..."
-  var ← makeVar
+  var ← makeEmptyVar
   proc ← spawnProc
   liftEff do
     Stream.onDataString (CP.stderr proc) Enc.UTF8 (checker var check <<< Left)
     Stream.onDataString (CP.stdout proc) Enc.UTF8 (checker var check <<< Right)
   _ ← forkAff do
     delay (Milliseconds 30000.0)
-    putVar var $ Just ("Timed out")
-  v ← peekVar var
+    putVar (Just "Timed out") var
+  v ← readVar var
   case v of
     Nothing → log (Chalky.bold "Started") $> proc
     Just err → do
@@ -97,9 +97,8 @@ checker
   → Either String String
   → Eff (console ∷ CONSOLE, avar ∷ AVAR, exception ∷ EXCEPTION | eff) Unit
 checker var check msg = void $ launchAff do
-  b ← isNothing <$> tryPeekVar var
+  b ← isNothing <$> tryReadVar var
   when b do
     log $ either Chalky.yellow Chalky.cyan msg
-    for_ (check msg) $
-      putVar var <<<
-        either (Just <<< ("An error occurred: " <> _)) (const Nothing)
+    for_ (check msg) \r →
+      putVar (either (Just <<< ("An error occurred: " <> _)) (const Nothing) r) var
