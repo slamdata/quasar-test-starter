@@ -58,7 +58,7 @@ spawnQuasarInit
   → Aff (avar ∷ AVAR, cp ∷ CP.CHILD_PROCESS, buffer ∷ BUFFER, console ∷ CONSOLE, exception ∷ EXCEPTION | eff) Unit
 spawnQuasarInit config jar = do
   log "Starting Quasar initUpdateMetaStore..."
-  var ← AV.makeVar
+  var ← AV.makeEmptyVar
   _ ← liftEff do
     cp ← CP.spawn
       "java"
@@ -66,9 +66,9 @@ spawnQuasarInit config jar = do
       CP.defaultSpawnOptions
     CP.onExit cp case _ of
       CP.Normally _ →
-        void $ launchAff $ apathize $ AV.putVar var (Right unit)
+        void $ launchAff $ apathize $ AV.putVar (Right unit) var
       _ →
-        void $ launchAff $ apathize $ AV.putVar var (Left unit)
+        void $ launchAff $ apathize $ AV.putVar (Left unit) var
   either (const (throwError (error "Process exited abnormally"))) (const (pure unit)) =<< AV.takeVar var
 
 spawnQuasar
